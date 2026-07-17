@@ -1,6 +1,6 @@
-# Unicorn Cloud Battle
+# Unicorn Cloud Quest
 
-A cozy **parent vs kid** browser game for ages 6+. Two little unicorns battle on colorful cloud pads, then the winner spins a prize wheel for diamonds.
+A cozy **Zelda-like** browser adventure for ages 6+. A parent and kid explore a magical cloud kingdom together on one screen — open chests, zap gentle storm sprites, unlock a rose-gold castle, solve a co-op switch puzzle, and face the cute Storm King. Then spin the prize wheel for diamonds!
 
 ## How to open
 
@@ -10,44 +10,44 @@ Or serve locally:
 
 ```bash
 cd unicorn-cloud-battle
-npx --yes serve .
+python3 -m http.server 5173
 ```
 
-Then open the URL shown in the terminal (usually `http://localhost:3000`).
+Then open [http://localhost:5173](http://localhost:5173).
 
 No install required. Works offline after the page has loaded once (Google Fonts need a network connection the first time; the game still works without them).
 
 ## How to play
 
-1. Enter two names (defaults: **Parent** and **Kid**).
-2. Pick unicorn colors.
-3. Press **Start Battle!**
-4. Each round, both players secretly pick one move, then actions resolve together.
-5. First to knock out all **3 hearts** wins.
-6. Winner **spins the wheel** for diamonds. Play again anytime!
+1. Tap **Begin Adventure**.
+2. Enter two names (defaults: **Parent** and **Kid**) and pick unicorn colors.
+3. Press **Enter Cloud Kingdom!**
+4. Explore cloud islands together — talk to Lumi the fairy, collect diamonds & hearts, open chests.
+5. Clear storm sprites in the Crystal Grove to claim the **golden key**.
+6. Unlock the **rose-gold castle gate**, then enter the dungeon portal.
+7. Find **3 crystals**, then **both unicorns stand on the cloud switches** at the same time.
+8. Zap the **Storm King** together (he’s goofy, not scary).
+9. Celebrate and **spin the prize wheel** for bonus diamonds!
 
 ### Controls
 
-| Action | Player 1 (left) | Player 2 (right) |
-|--------|-----------------|------------------|
-| Move left | **A** | **←** |
-| Move right | **D** | **→** |
-| Sparkle attack | **W** | **↑** |
-| Shield | **S** | **↓** |
-| Jump (dodge) | **Q** | **/** |
+| Action | Player 1 | Player 2 |
+|--------|----------|----------|
+| Move | **WASD** | **Arrow keys** |
+| Sparkle attack / interact | **Space** or **E** | **Enter** or **/** |
 
-Big on-screen buttons work too — great for younger kids.
+Big on-screen touch buttons work too — great for younger kids.
 
-### Combat tips
+### Tips
 
-- **Sparkle** hits if you are on the **same cloud** or a **neighbor** cloud.
-- **Shield** blocks a sparkle.
-- **Jump** dodges a sparkle.
-- If nobody attacks, you just hop around the clouds — still fun!
+- Walk close to chests, the fairy, crystals, and the gate, then press **Sparkle** to interact.
+- Sparkle projectiles auto-aim a little toward nearby sprites.
+- If a unicorn runs out of hearts, they softly respawn in the meadow (still fun, not game-over scary).
+- Both players share the adventure on one keyboard — teamwork unlocks the boss door!
 
 ## Gameplay summary
 
-Simultaneous-choice arena on 5 colored cloud pads. Short rounds, hearts for HP, yay-style banners, an ambient unicorn trotting across the sky, and a diamond prize wheel after each match.
+Top-down co-op exploration across floating cloud islands, a shimmering rainbow bridge, crystal trees, and a fairy-tale castle. Light combat, collectibles, a simple dungeon puzzle, a cartoon boss, epic unicorn art (flowing manes, glowing horns, sparkle trails), and a diamond prize wheel at the end.
 
 ## License
 
