@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Unicorn Cloud Battle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --sky-top: #7ec8e8;
+      --sky-mid: #ffe0b8;
+      --sky-bot: #ffb4a2;
+      --mint: #7ddfc0;
+      --coral: #ff7a6e;
+      --butter: #ffe66d;
+      --cream: #fff8f0;
+      --ink: #3a2f45;
+      --ink-soft: #5c4d6b;
+      --p1: #ff8fab;
+      --p2: #6ec6ff;
+      --cloud: #ffffff;
+      --shadow: rgba(58, 47, 69, 0.18);
+      --ok: #4caf82;
+      --panel: rgba(255, 248, 240, 0.92);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: "Nunito", "Trebuchet MS", sans-serif;
+      color: var(--ink);
+      background: var(--sky-top);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    h1, h2, h3, .display {
+      font-family: "Baloo 2", "Nunito", sans-serif;
+      letter-spacing: 0.02em;
+    }
+
+    #app {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 15%, rgba(255, 255, 255, 0.45), transparent 55%),
+        radial-gradient(ellipse 60% 40% at 85% 25%, rgba(255, 214, 165, 0.55), transparent 50%),
+        linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 48%, var(--sky-bot) 100%);
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 2;
+    }
+    .screen.active { display: flex; }
+
+    /* Ambient sky layer */
+    .sky-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .drift-cloud {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.55);
+      border-radius: 50px;
+      filter: blur(0.5px);
+      animation: drift linear infinite;
+    }
+    .drift-cloud::before,
+    .drift-cloud::after {
+      content: "";
+      position: absolute;
+      background: inherit;
+      border-radius: 50%;
+    }
+    .drift-cloud::before {
+      width: 55%;
+      height: 80%;
+      top: -35%;
+      left: 12%;
+    }
+    .drift-cloud::after {
+      width: 45%;
+      height: 70%;
+      top: -28%;
+      right: 14%;
+    }
+
+    @keyframes drift {
+      from { transform: translateX(0); }
+      to { transform: translateX(120vw); }
+    }
+
+    .runner {
+      position: absolute;
+      top: 12%;
+      left: -80px;
+      width: 64px;
+      height: 48px;
+      z-index: 1;
+      animation: runAcross 18s linear infinite;
+      filter: drop-shadow(0 4px 6px rgba(58, 47, 69, 0.2));
+    }
+
+    @keyframes runAcross {
+      0% { transform: translateX(0) scaleX(1); }
+      45% { transform: translateX(calc(100vw + 80px)) scaleX(1); }
+      50% { transform: translateX(calc(100vw + 80px)) scaleX(-1); }
+      95% { transform: translateX(-80px) scaleX(-1); }
+      100% { transform: translateX(-80px) scaleX(1); }
+    }
+
+    .runner svg { width: 100%; height: 100%; display: block; }
+    .runner .leg { transform-origin: top center; animation: trot 0.28s ease-in-out infinite alternate; }
+    .runner .leg.back { animation-delay: -0.14s; }
+    @keyframes trot {
+      from { transform: rotate(-18deg); }
+      to { transform: rotate(18deg); }
+    }
+
+    /* Panels */
+    .panel {
+      background: var(--panel);
+      border: 3px solid rgba(255, 255, 255, 0.85);
+      border-radius: 28px;
+      box-shadow: 0 16px 40px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.9);
+      padding: 28px 24px;
+      max-width: 720px;
+      width: min(92vw, 720px);
+      backdrop-filter: blur(8px);
+      animation: popIn 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.92) translateY(12px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .brand h1 {
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      line-height: 1.05;
+      background: linear-gradient(120deg, #ff6b8a 0%, #ff9f43 45%, #4ecdc4 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: none;
+      filter: drop-shadow(0 2px 0 rgba(255,255,255,0.5));
+    }
+    .brand p {
+      color: var(--ink-soft);
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-top: 4px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .player-setup {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 640px) {
+      .player-setup { grid-template-columns: 1fr; }
+    }
+
+    .setup-card {
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: var(--radius);
+      padding: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .setup-card h3 {
+      font-size: 1.15rem;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--ink-soft);
+      margin-bottom: 4px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      border: 3px solid #f0d5c8;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font: inherit;
+      font-weight: 700;
+      font-size: 1.1rem;
+      background: #fff;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input[type="text"]:focus {
+      border-color: #ff9f43;
+      box-shadow: 0 0 0 4px rgba(255, 159, 67, 0.25);
+    }
+
+    .swatches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .swatch {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.9);
+      box-shadow: 0 3px 0 rgba(0,0,0,0.12);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .swatch:hover { transform: scale(1.1); }
+    .swatch.selected {
+      outline: 3px solid var(--ink);
+      outline-offset: 2px;
+      transform: scale(1.12);
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      cursor: pointer;
+      font-family: "Baloo 2", "Nunito", sans-serif;
+      font-weight: 800;
+      font-size: 1.25rem;
+      padding: 14px 28px;
+      border-radius: 999px;
+      color: #fff;
+      background: linear-gradient(180deg, #ff9f43, #ff6b35);
+      box-shadow: 0 6px 0 #d35400, 0 10px 20px rgba(211, 84, 0, 0.25);
+      transition: transform 0.1s, box-shadow 0.1s;
+      margin-top: 18px;
+      width: 100%;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #d35400, 0 4px 10px rgba(211, 84, 0, 0.2);
+    }
+    .btn.secondary {
+      background: linear-gradient(180deg, #7ddfc0, #3db89a);
+      box-shadow: 0 6px 0 #2a8f75, 0 10px 20px rgba(42, 143, 117, 0.25);
+    }
+    .btn.secondary:active { box-shadow: 0 2px 0 #2a8f75; }
+    .btn.pink {
+      background: linear-gradient(180deg, #ff8fab, #ff5d8f);
+      box-shadow: 0 6px 0 #d63a6e, 0 10px 20px rgba(214, 58, 110, 0.25);
+    }
+    .btn.pink:active { box-shadow: 0 2px 0 #d63a6e; }
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .how-to {
+      margin-top: 14px;
+      font-size: 0.92rem;
+      color: var(--ink-soft);
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    /* ===== GAME SCREEN ===== */
+    #screen-game {
+      justify-content: stretch;
+      padding: 10px;
+      gap: 8px;
+    }
+
+    .hud {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 8px;
+      align-items: start;
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      z-index: 3;
+    }
+
+    .hud-card {
+      background: var(--panel);
+      border-radius: 18px;
+      padding: 10px 14px;
+      border: 2px solid rgba(255,255,255,0.9);
+      box-shadow: 0 8px 18px var(--shadow);
+      min-width: 0;
+    }
+    .hud-card.p1 { border-bottom: 4px solid var(--p1-color, var(--p1)); }
+    .hud-card.p2 { border-bottom: 4px solid var(--p2-color, var(--p2)); text-align: right; }
+
+    .hud-name {
+      font-family: "Baloo 2", sans-serif;
+      font-size: 1.15rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hearts {
+      display: flex;
+      gap: 4px;
+      margin: 4px 0;
+      font-size: 1.5rem;
+      line-height: 1;
+    }
+    .hud-card.p2 .hearts { justify-content: flex-end; }
+    .heart { filter: drop-shadow(0 2px 0 rgba(0,0,0,0.1)); transition: transform 0.2s; }
+    .heart.empty { opacity: 0.25; filter: grayscale(1); }
+    .heart.hit { animation: heartPop 0.4s ease; }
+    @keyframes heartPop {
+      0%, 100% { transform: scale(1); }
+      40% { transform: scale(1.35); }
+    }
+
+    .diamonds {
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: var(--ink-soft);
+    }
+    .diamonds span { color: #3aa0d8; }
+
+    .round-box {
+      text-align: center;
+      min-width: 120px;
+      background: linear-gradient(180deg, #fff, #ffe8d6);
+    }
+    .round-box .label {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+    }
+    .round-box .num {
+      font-family: "Baloo 2", sans-serif;
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+    .timer-bar {
+      height: 8px;
+      background: #f0d5c8;
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .timer-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #ff9f43, #ff6b8a);
+      border-radius: 99px;
+      transition: width 0.1s linear;
+    }
+
+    .arena-wrap {
+      flex: 1;
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      position: relative;
+      min-height: 220px;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .banner {
+      position: absolute;
+      top: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 248, 240, 0.95);
+      border: 3px solid #fff;
+      border-radius: 999px;
+      padding: 10px 22px;
+      font-family: "Baloo 2", sans-serif;
+      font-size: clamp(1.1rem, 3.5vw, 1.6rem);
+      box-shadow: 0 8px 20px var(--shadow);
+      z-index: 5;
+      text-align: center;
+      max-width: 90%;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.25s;
+    }
+    .banner.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1.05);
+    }
+
+    .clouds-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 6px;
+      padding: 0 4px 8px;
+      height: 100%;
+      position: relative;
+    }
+
+    .cloud-pad {
+      flex: 1;
+      max-width: 180px;
+      height: 100%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .pad-body {
+      width: 100%;
+      aspect-ratio: 1.55 / 1;
+      max-height: 110px;
+      border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+      position: relative;
+      box-shadow:
+        inset 0 -10px 0 rgba(0,0,0,0.06),
+        0 10px 0 rgba(0,0,0,0.08);
+      transition: transform 0.2s;
+    }
+    .pad-body::before {
+      content: "";
+      position: absolute;
+      width: 40%;
+      height: 45%;
+      background: inherit;
+      border-radius: 50%;
+      top: -22%;
+      left: 10%;
+      filter: brightness(1.05);
+    }
+    .pad-body::after {
+      content: "";
+      position: absolute;
+      width: 42%;
+      height: 48%;
+      background: inherit;
+      border-radius: 50%;
+      top: -26%;
+      right: 12%;
+    }
+
+    .pad-label {
+      position: absolute;
+      bottom: 18%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: "Baloo 2", sans-serif;
+      font-size: 1.1rem;
+      color: rgba(58, 47, 69, 0.45);
+      z-index: 2;
+    }
+
+    .unicorn {
+      position: absolute;
+      bottom: 55%;
+      width: clamp(56px, 12vw, 88px);
+      height: clamp(48px, 10vw, 72px);
+      transition: left 0.35s cubic-bezier(0.34, 1.3, 0.64, 1), bottom 0.3s ease;
+      z-index: 4;
+      filter: drop-shadow(0 6px 4px rgba(58, 47, 69, 0.2));
+    }
+    .unicorn.facing-left { transform: scaleX(-1); }
+    .unicorn.jumping {
+      animation: uniJump 0.55s ease;
+    }
+    .unicorn.shielding .shield-ring {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .unicorn.attacking {
+      animation: uniAttack 0.45s ease;
+    }
+    .unicorn.hurt {
+      animation: uniHurt 0.5s ease;
+    }
+
+    @keyframes uniJump {
+      0%, 100% { bottom: 55%; }
+      50% { bottom: 78%; }
+    }
+    @keyframes uniAttack {
+      0%, 100% { transform: scaleX(var(--face, 1)) translateX(0); }
+      40% { transform: scaleX(var(--face, 1)) translateX(calc(var(--atk, 1) * 14px)); }
+    }
+    @keyframes uniHurt {
+      0%, 100% { filter: drop-shadow(0 6px 4px rgba(58, 47, 69, 0.2)); }
+      30% { filter: drop-shadow(0 0 8px #ff6b8a) brightness(1.2); transform: scaleX(var(--face, 1)) translateX(calc(var(--atk, -1) * 8px)); }
+    }
+
+    .shield-ring {
+      position: absolute;
+      inset: -12%;
+      border: 4px solid rgba(110, 198, 255, 0.85);
+      border-radius: 50%;
+      opacity: 0;
+      transform: scale(0.6);
+      transition: 0.2s;
+      box-shadow: 0 0 16px rgba(110, 198, 255, 0.5), inset 0 0 12px rgba(255,255,255,0.4);
+      pointer-events: none;
+    }
+
+    .sparkle-burst {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      pointer-events: none;
+      z-index: 6;
+      animation: burst 0.7s ease forwards;
+    }
+    @keyframes burst {
+      0% { opacity: 1; transform: translate(0,0) scale(1); }
+      100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.2); }
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      z-index: 3;
+    }
+
+    .control-panel {
+      background: var(--panel);
+      border-radius: 20px;
+      padding: 10px;
+      border: 2px solid rgba(255,255,255,0.95);
+      box-shadow: 0 8px 18px var(--shadow);
+    }
+    .control-panel.p1 { border-top: 5px solid var(--p1-color, var(--p1)); }
+    .control-panel.p2 { border-top: 5px solid var(--p2-color, var(--p2)); }
+
+    .control-title {
+      font-family: "Baloo 2", sans-serif;
+      font-size: 1rem;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ready-badge {
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: #f0d5c8;
+      color: var(--ink-soft);
+    }
+    .ready-badge.on {
+      background: #c8f5e4;
+      color: #1f7a5a;
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .action-btn {
+      appearance: none;
+      border: 3px solid rgba(255,255,255,0.9);
+      border-radius: 16px;
+      padding: 10px 6px;
+      font-family: "Baloo 2", sans-serif;
+      font-size: clamp(0.85rem, 2.5vw, 1.05rem);
+      font-weight: 700;
+      cursor: pointer;
+      background: #fff;
+      color: var(--ink);
+      box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+      transition: transform 0.1s, background 0.15s;
+      line-height: 1.15;
+      min-height: 64px;
+    }
+    .action-btn small {
+      display: block;
+      font-family: "Nunito", sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      opacity: 0.55;
+      margin-top: 2px;
+    }
+    .action-btn:hover:not(:disabled) { transform: translateY(-2px); }
+    .action-btn:active:not(:disabled) {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+    }
+    .action-btn.selected {
+      background: linear-gradient(180deg, #ffe66d, #ffc857);
+      box-shadow: 0 4px 0 #e0a020;
+      transform: scale(1.04);
+    }
+    .action-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .keys-hint {
+      margin-top: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--ink-soft);
+      text-align: center;
+      opacity: 0.85;
+    }
+
+    /* ===== WHEEL / WIN ===== */
+    .win-panel { text-align: center; }
+
+    .win-panel h2 {
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      margin-bottom: 6px;
+    }
+
+    .trophy-row {
+      font-size: 2.5rem;
+      margin: 8px 0 16px;
+      animation: bounceY 1s ease infinite;
+    }
+    @keyframes bounceY {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .wheel-stage {
+      position: relative;
+      width: min(280px, 70vw);
+      height: min(280px, 70vw);
+      margin: 12px auto 20px;
+    }
+
+    .wheel-pointer {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-top: 28px solid #ff6b35;
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+    }
+
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 8px solid #fff;
+      box-shadow: 0 12px 30px var(--shadow), inset 0 0 0 6px rgba(255,255,255,0.3);
+      transition: transform 4s cubic-bezier(0.15, 0.85, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .wheel-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      justify-content: center;
+      padding-top: 16px;
+      pointer-events: none;
+      font-family: "Baloo 2", sans-serif;
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--ink);
+      text-shadow: 0 1px 0 #fff;
+    }
+
+    .wheel-center {
+      position: absolute;
+      inset: 38%;
+      background: radial-gradient(circle, #fff 40%, #ffe66d);
+      border-radius: 50%;
+      border: 4px solid #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      font-size: 1.4rem;
+    }
+
+    .prize-msg {
+      font-size: 1.2rem;
+      font-weight: 800;
+      min-height: 1.5em;
+      margin-bottom: 8px;
+      color: #3aa0d8;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .confetti {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 20;
+      overflow: hidden;
+    }
+    .confetti i {
+      position: absolute;
+      top: -12px;
+      width: 10px;
+      height: 14px;
+      border-radius: 2px;
+      animation: fall linear forwards;
+    }
+    @keyframes fall {
+      to { transform: translateY(110vh) rotate(720deg); opacity: 0.3; }
+    }
+
+    .vs-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #ffe66d, #ffc857);
+      font-family: "Baloo 2", sans-serif;
+      font-weight: 800;
+      box-shadow: 0 4px 0 #e0a020;
+      margin: 0 auto;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="sky-layer" id="sky-layer" aria-hidden="true"></div>
+
+    <div class="runner" id="sky-runner" aria-hidden="true">
+      <svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="40" cy="34" rx="22" ry="14" fill="#fff6f8"/>
+        <ellipse cx="58" cy="28" rx="10" ry="9" fill="#fff6f8"/>
+        <polygon points="62,12 65,28 56,24" fill="#ffd6e0"/>
+        <polygon points="62,12 63.5,6 66,14" fill="#7ddfc0"/>
+        <path d="M18 30 Q8 20 12 10 Q22 18 24 28" fill="#ffd6e0" opacity="0.9"/>
+        <circle cx="62" cy="26" r="1.8" fill="#3a2f45"/>
+        <ellipse class="leg" cx="32" cy="48" rx="4" ry="8" fill="#ffe0ea"/>
+        <ellipse class="leg back" cx="48" cy="48" rx="4" ry="8" fill="#ffd0de"/>
+      </svg>
+    </div>
+
+    <!-- START -->
+    <section class="screen active" id="screen-start">
+      <div class="panel">
+        <div class="brand">
+          <h1>Unicorn Cloud Battle</h1>
+          <p>Parent vs Kid · cozy sparkle showdown</p>
+        </div>
+        <div class="form-grid">
+          <div class="player-setup">
+            <div class="setup-card">
+              <h3><span id="preview-p1"></span> Player 1</h3>
+              <label for="name-p1">Name</label>
+              <input id="name-p1" type="text" maxlength="14" value="Parent" autocomplete="off" />
+              <label style="margin-top:10px">Unicorn color</label>
+              <div class="swatches" id="swatches-p1"></div>
+            </div>
+            <div class="setup-card">
+              <h3><span id="preview-p2"></span> Player 2</h3>
+              <label for="name-p2">Name</label>
+              <input id="name-p2" type="text" maxlength="14" value="Kid" autocomplete="off" />
+              <label style="margin-top:10px">Unicorn color</label>
+              <div class="swatches" id="swatches-p2"></div>
+            </div>
+          </div>
+          <button class="btn" id="btn-start" type="button">Start Battle! ✨</button>
+          <p class="how-to">
+            Pick a move each turn — move on the clouds, sparkle attack, shield, or jump!<br />
+            First to knock out all hearts wins diamonds on the Spin Wheel.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- GAME -->
+    <section class="screen" id="screen-game">
+      <div class="hud">
+        <div class="hud-card p1" id="hud-p1">
+          <div class="hud-name" id="hud-name-p1">Parent</div>
+          <div class="hearts" id="hearts-p1"></div>
+          <div class="diamonds">💎 <span id="dia-p1">0</span></div>
+        </div>
+        <div class="hud-card round-box">
+          <div class="label">Round</div>
+          <div class="num" id="round-num">1</div>
+          <div class="timer-bar"><div class="timer-fill" id="timer-fill"></div></div>
+        </div>
+        <div class="hud-card p2" id="hud-p2">
+          <div class="hud-name" id="hud-name-p2">Kid</div>
+          <div class="hearts" id="hearts-p2"></div>
+          <div class="diamonds">💎 <span id="dia-p2">0</span></div>
+        </div>
+      </div>
+
+      <div class="arena-wrap">
+        <div class="banner" id="banner">Pick your moves!</div>
+        <div class="clouds-row" id="clouds-row"></div>
+        <div class="unicorn" id="uni-p1" style="--face:1;--atk:1"></div>
+        <div class="unicorn" id="uni-p2" style="--face:-1;--atk:-1"></div>
+      </div>
+
+      <div class="controls">
+        <div class="control-panel p1">
+          <div class="control-title">
+            <span id="ctrl-name-p1">Parent</span>
+            <span class="ready-badge" id="ready-p1">Pick…</span>
+          </div>
+          <div class="action-grid" id="actions-p1"></div>
+          <div class="keys-hint">Keys: A D · W sparkle · S shield · Q jump</div>
+        </div>
+        <div class="control-panel p2">
+          <div class="control-title">
+            <span id="ctrl-name-p2">Kid</span>
+            <span class="ready-badge" id="ready-p2">Pick…</span>
+          </div>
+          <div class="action-grid" id="actions-p2"></div>
+          <div class="keys-hint">Keys: ← → · ↑ sparkle · ↓ shield · / jump</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WIN / WHEEL -->
+    <section class="screen" id="screen-win">
+      <div class="panel win-panel">
+        <div class="trophy-row">🏆✨💎</div>
+        <h2 id="win-title">Winner!</h2>
+        <p id="win-sub" style="font-weight:700;color:var(--ink-soft);margin-bottom:8px">Spin the wheel for diamonds!</p>
+
+        <div class="wheel-stage">
+          <div class="wheel-pointer"></div>
+          <div class="wheel" id="wheel"></div>
+          <div class="wheel-center">💫</div>
+        </div>
+
+        <div class="prize-msg" id="prize-msg">Tap Spin!</div>
+        <div class="btn-row">
+          <button class="btn pink" id="btn-spin" type="button">Spin the Wheel!</button>
+          <button class="btn secondary hidden" id="btn-again" type="button">Play Again</button>
+          <button class="btn secondary hidden" id="btn-home" type="button" style="background:linear-gradient(180deg,#b8c0ff,#8890e0);box-shadow:0 6px 0 #5c64b8">Change Names</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="confetti" id="confetti"></div>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const COLORS = [
+        { id: "rose", fill: "#ff8fab", mane: "#ff5d8f", accent: "#ffe0ea" },
+        { id: "sky", fill: "#6ec6ff", mane: "#3aa0d8", accent: "#d6f0ff" },
+        { id: "mint", fill: "#7ddfc0", mane: "#3db89a", accent: "#d8fff3" },
+        { id: "butter", fill: "#ffe66d", mane: "#f0c020", accent: "#fff6c8" },
+        { id: "peach", fill: "#ffb4a2", mane: "#ff7a6e", accent: "#ffe4dc" },
+        { id: "lilac", fill: "#d4a5ff", mane: "#a66de0", accent: "#f0e0ff" },
+      ];
+
+      const CLOUD_COLORS = ["#fff0f5", "#e8f8ff", "#eafff5", "#fff8e0", "#ffe8dc"];
+      const PAD_COUNT = 5;
+      const MAX_HP = 3;
+      const PICK_SECONDS = 8;
+
+      const ACTIONS = [
+        { id: "left", label: "⬅️ Left", keys: { p1: ["a", "A"], p2: ["ArrowLeft"] } },
+        { id: "right", label: "➡️ Right", keys: { p1: ["d", "D"], p2: ["ArrowRight"] } },
+        { id: "attack", label: "✨ Sparkle", keys: { p1: ["w", "W"], p2: ["ArrowUp"] } },
+        { id: "shield", label: "🛡️ Shield", keys: { p1: ["s", "S"], p2: ["ArrowDown"] } },
+        { id: "jump", label: "☁️ Jump", keys: { p1: ["q", "Q"], p2: ["/", "?"] } },
+      ];
+
+      const WHEEL_PRIZES = [
+        { label: "1 💎", value: 1, color: "#ffe0ea" },
+        { label: "2 💎", value: 2, color: "#d6f0ff" },
+        { label: "3 💎", value: 3, color: "#d8fff3" },
+        { label: "5 💎", value: 5, color: "#fff6c8" },
+        { label: "1 💎", value: 1, color: "#ffe4dc" },
+        { label: "2 💎", value: 2, color: "#f0e0ff" },
+        { label: "Rainbow!", value: 7, color: "#ffd6e8" },
+        { label: "3 💎", value: 3, color: "#c8f5e4" },
+      ];
+
+      const YAY = [
+        "Sparkle power!",
+        "What a jump!",
+        "Shields up!",
+        "Cloud hop!",
+        "Super move!",
+        "Yay!",
+        "Twinkle time!",
+        "Nice one!",
+      ];
+
+      const state = {
+        screen: "start",
+        names: { p1: "Parent", p2: "Kid" },
+        colors: { p1: COLORS[0], p2: COLORS[1] },
+        hp: { p1: MAX_HP, p2: MAX_HP },
+        diamonds: { p1: 0, p2: 0 },
+        pos: { p1: 1, p2: 3 },
+        round: 1,
+        picks: { p1: null, p2: null },
+        phase: "pick", // pick | resolve | ended
+        winner: null,
+        timer: null,
+        timeLeft: PICK_SECONDS,
+        spinning: false,
+        spun: false,
+      };
+
+      const $ = (sel) => document.querySelector(sel);
+      const $$ = (sel) => [...document.querySelectorAll(sel)];
+
+      function unicornSvg(color, facingLeft) {
+        const face = facingLeft ? -1 : 1;
+        return `
+          <div class="shield-ring"></div>
+          <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;overflow:visible">
+            <ellipse cx="48" cy="48" rx="28" ry="18" fill="${color.fill}"/>
+            <ellipse cx="72" cy="38" rx="14" ry="12" fill="${color.fill}"/>
+            <polygon points="78,16 82,40 70,34" fill="${color.mane}"/>
+            <polygon points="78,16 80,6 84,18" fill="${color.accent}"/>
+            <path d="M22 44 Q8 28 14 14 Q30 28 32 42" fill="${color.mane}" opacity="0.95"/>
+            <circle cx="78" cy="36" r="2.4" fill="#3a2f45"/>
+            <ellipse cx="86" cy="40" rx="3" ry="2" fill="${color.accent}"/>
+            <ellipse cx="38" cy="66" rx="5" ry="10" fill="${color.accent}"/>
+            <ellipse cx="58" cy="66" rx="5" ry="10" fill="${color.accent}"/>
+            <circle cx="30" cy="42" r="3" fill="#fff" opacity="0.5"/>
+          </svg>
+        `;
+      }
+
+      function tinyUnicorn(color) {
+        return `<svg width="28" height="22" viewBox="0 0 100 80" style="vertical-align:middle">
+          <ellipse cx="48" cy="48" rx="28" ry="18" fill="${color.fill}"/>
+          <ellipse cx="72" cy="38" rx="14" ry="12" fill="${color.fill}"/>
+          <polygon points="78,16 82,40 70,34" fill="${color.mane}"/>
+        </svg>`;
+      }
+
+      /* ----- Setup UI ----- */
+      function buildSwatches() {
+        ["p1", "p2"].forEach((who) => {
+          const box = $(`#swatches-${who}`);
+          box.innerHTML = "";
+          COLORS.forEach((c) => {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.className = "swatch" + (state.colors[who].id === c.id ? " selected" : "");
+            b.style.background = `linear-gradient(145deg, ${c.accent}, ${c.fill})`;
+            b.title = c.id;
+            b.setAttribute("aria-label", c.id);
+            b.addEventListener("click", () => {
+              // Avoid identical colors if possible
+              const other = who === "p1" ? "p2" : "p1";
+              if (state.colors[other].id === c.id) {
+                const alt = COLORS.find((x) => x.id !== c.id);
+                state.colors[other] = alt;
+              }
+              state.colors[who] = c;
+              buildSwatches();
+              updatePreviews();
+            });
+            box.appendChild(b);
+          });
+        });
+        updatePreviews();
+      }
+
+      function updatePreviews() {
+        $("#preview-p1").innerHTML = tinyUnicorn(state.colors.p1);
+        $("#preview-p2").innerHTML = tinyUnicorn(state.colors.p2);
+        document.documentElement.style.setProperty("--p1-color", state.colors.p1.fill);
+        document.documentElement.style.setProperty("--p2-color", state.colors.p2.fill);
+      }
+
+      function buildSky() {
+        const sky = $("#sky-layer");
+        sky.innerHTML = "";
+        for (let i = 0; i < 6; i++) {
+          const c = document.createElement("div");
+          c.className = "drift-cloud";
+          const w = 80 + Math.random() * 100;
+          c.style.width = w + "px";
+          c.style.height = 28 + Math.random() * 20 + "px";
+          c.style.top = 8 + Math.random() * 40 + "%";
+          c.style.left = -20 - Math.random() * 40 + "vw";
+          c.style.animationDuration = 28 + Math.random() * 40 + "s";
+          c.style.animationDelay = -Math.random() * 40 + "s";
+          c.style.opacity = 0.35 + Math.random() * 0.35;
+          sky.appendChild(c);
+        }
+      }
+
+      function buildWheel() {
+        const wheel = $("#wheel");
+        wheel.innerHTML = "";
+        const n = WHEEL_PRIZES.length;
+        const stops = WHEEL_PRIZES.map((p, i) => {
+          const a0 = (i / n) * 360;
+          const a1 = ((i + 1) / n) * 360;
+          return `${p.color} ${a0}deg ${a1}deg`;
+        }).join(", ");
+        wheel.style.background = `conic-gradient(from -90deg, ${stops})`;
+
+        WHEEL_PRIZES.forEach((p, i) => {
+          const label = document.createElement("div");
+          label.className = "wheel-label";
+          label.style.transform = `rotate(${(i + 0.5) * (360 / n)}deg)`;
+          label.textContent = p.label;
+          wheel.appendChild(label);
+        });
+      }
+
+      function buildPads() {
+        const row = $("#clouds-row");
+        row.innerHTML = "";
+        for (let i = 0; i < PAD_COUNT; i++) {
+          const pad = document.createElement("div");
+          pad.className = "cloud-pad";
+          pad.dataset.pad = String(i);
+          pad.innerHTML = `
+            <div class="pad-body" style="background:${CLOUD_COLORS[i]}"></div>
+            <div class="pad-label">${i + 1}</div>
+          `;
+          row.appendChild(pad);
+        }
+      }
+
+      function buildActions() {
+        ["p1", "p2"].forEach((who) => {
+          const grid = $(`#actions-${who}`);
+          grid.innerHTML = "";
+          ACTIONS.forEach((a) => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "action-btn";
+            btn.dataset.action = a.id;
+            btn.dataset.who = who;
+            const keyHint = who === "p1"
+              ? (a.id === "left" ? "A" : a.id === "right" ? "D" : a.id === "attack" ? "W" : a.id === "shield" ? "S" : "Q")
+              : (a.id === "left" ? "←" : a.id === "right" ? "→" : a.id === "attack" ? "↑" : a.id === "shield" ? "↓" : "/");
+            btn.innerHTML = `${a.label}<small>${keyHint}</small>`;
+            btn.addEventListener("click", () => pickAction(who, a.id));
+            grid.appendChild(btn);
+          });
+        });
+      }
+
+      /* ----- Screens ----- */
+      function showScreen(name) {
+        state.screen = name;
+        $$(".screen").forEach((s) => s.classList.remove("active"));
+        $(`#screen-${name}`).classList.add("active");
+      }
+
+      function startMatch() {
+        state.names.p1 = ($("#name-p1").value.trim() || "Parent").slice(0, 14);
+        state.names.p2 = ($("#name-p2").value.trim() || "Kid").slice(0, 14);
+        state.hp = { p1: MAX_HP, p2: MAX_HP };
+        state.pos = { p1: 1, p2: 3 };
+        state.round = 1;
+        state.picks = { p1: null, p2: null };
+        state.phase = "pick";
+        state.winner = null;
+        state.spun = false;
+        state.spinning = false;
+
+        $("#hud-name-p1").textContent = state.names.p1;
+        $("#hud-name-p2").textContent = state.names.p2;
+        $("#ctrl-name-p1").textContent = state.names.p1;
+        $("#ctrl-name-p2").textContent = state.names.p2;
+        $("#dia-p1").textContent = state.diamonds.p1;
+        $("#dia-p2").textContent = state.diamonds.p2;
+        $("#round-num").textContent = state.round;
+
+        paintUnicorns();
+        renderHearts();
+        placeUnicorns();
+        resetPickUI();
+        showScreen("game");
+        showBanner("Pick your moves together!");
+        startTimer();
+      }
+
+      function paintUnicorns() {
+        const u1 = $("#uni-p1");
+        const u2 = $("#uni-p2");
+        u1.innerHTML = unicornSvg(state.colors.p1, false);
+        u2.innerHTML = unicornSvg(state.colors.p2, true);
+        u1.classList.remove("facing-left");
+        u2.classList.add("facing-left");
+        u1.style.setProperty("--face", "1");
+        u2.style.setProperty("--face", "-1");
+      }
+
+      function placeUnicorns() {
+        const pads = $$(".cloud-pad");
+        ["p1", "p2"].forEach((who) => {
+          const el = $(`#uni-${who}`);
+          const pad = pads[state.pos[who]];
+          if (!pad) return;
+          const row = $("#clouds-row");
+          const rowRect = row.getBoundingClientRect();
+          const padRect = pad.getBoundingClientRect();
+          const left = padRect.left - rowRect.left + padRect.width / 2 - el.offsetWidth / 2;
+          el.style.left = left + "px";
+          // Face toward opponent
+          if (who === "p1") {
+            const faceRight = state.pos.p1 <= state.pos.p2;
+            el.classList.toggle("facing-left", !faceRight);
+            el.style.setProperty("--face", faceRight ? "1" : "-1");
+            el.style.setProperty("--atk", faceRight ? "1" : "-1");
+          } else {
+            const faceLeft = state.pos.p2 >= state.pos.p1;
+            el.classList.toggle("facing-left", faceLeft);
+            el.style.setProperty("--face", faceLeft ? "-1" : "1");
+            el.style.setProperty("--atk", faceLeft ? "-1" : "1");
+          }
+        });
+      }
+
+      function renderHearts() {
+        ["p1", "p2"].forEach((who) => {
+          const box = $(`#hearts-${who}`);
+          box.innerHTML = "";
+          for (let i = 0; i < MAX_HP; i++) {
+            const s = document.createElement("span");
+            s.className = "heart" + (i < state.hp[who] ? "" : " empty");
+            s.textContent = "❤️";
+            box.appendChild(s);
+          }
+        });
+      }
+
+      function resetPickUI() {
+        state.picks = { p1: null, p2: null };
+        state.phase = "pick";
+        $$(".action-btn").forEach((b) => {
+          b.disabled = false;
+          b.classList.remove("selected");
+        });
+        $("#ready-p1").textContent = "Pick…";
+        $("#ready-p2").textContent = "Pick…";
+        $("#ready-p1").classList.remove("on");
+        $("#ready-p2").classList.remove("on");
+        $("#uni-p1").classList.remove("jumping", "shielding", "attacking", "hurt");
+        $("#uni-p2").classList.remove("jumping", "shielding", "attacking", "hurt");
+      }
+
+      function showBanner(text) {
+        const b = $("#banner");
+        b.textContent = text;
+        b.classList.add("show");
+        clearTimeout(showBanner._t);
+        showBanner._t = setTimeout(() => b.classList.remove("show"), 2200);
+      }
+
+      function startTimer() {
+        clearInterval(state.timer);
+        state.timeLeft = PICK_SECONDS;
+        updateTimerBar();
+        state.timer = setInterval(() => {
+          if (state.phase !== "pick") return;
+          state.timeLeft -= 0.1;
+          if (state.timeLeft <= 0) {
+            state.timeLeft = 0;
+            updateTimerBar();
+            // Auto-pick random for anyone who hasn't chosen
+            ["p1", "p2"].forEach((who) => {
+              if (!state.picks[who]) {
+                const ids = ACTIONS.map((a) => a.id);
+                pickAction(who, ids[Math.floor(Math.random() * ids.length)], true);
+              }
+            });
+            return;
+          }
+          updateTimerBar();
+        }, 100);
+      }
+
+      function updateTimerBar() {
+        const pct = Math.max(0, (state.timeLeft / PICK_SECONDS) * 100);
+        $("#timer-fill").style.width = pct + "%";
+      }
+
+      function pickAction(who, actionId, fromTimer) {
+        if (state.screen !== "game" || state.phase !== "pick") return;
+        if (state.picks[who]) return;
+        state.picks[who] = actionId;
+
+        $$(`#actions-${who} .action-btn`).forEach((b) => {
+          b.classList.toggle("selected", b.dataset.action === actionId);
+          b.disabled = true;
+        });
+        $(`#ready-${who}`).textContent = "Ready!";
+        $(`#ready-${who}`).classList.add("on");
+
+        if (!fromTimer) {
+          showBanner(YAY[Math.floor(Math.random() * YAY.length)]);
+        }
+
+        if (state.picks.p1 && state.picks.p2) {
+          clearInterval(state.timer);
+          setTimeout(resolveRound, 400);
+        }
+      }
+
+      function dist() {
+        return Math.abs(state.pos.p1 - state.pos.p2);
+      }
+
+      async function resolveRound() {
+        state.phase = "resolve";
+        $$(".action-btn").forEach((b) => { b.disabled = true; });
+
+        const a1 = state.picks.p1;
+        const a2 = state.picks.p2;
+
+        showBanner(`${labelOf(a1)} vs ${labelOf(a2)}`);
+        await wait(500);
+
+        // 1) Moves
+        applyMove("p1", a1);
+        applyMove("p2", a2);
+        placeUnicorns();
+        await wait(380);
+
+        // 2) Jump / Shield visuals
+        if (a1 === "jump") $("#uni-p1").classList.add("jumping");
+        if (a2 === "jump") $("#uni-p2").classList.add("jumping");
+        if (a1 === "shield") $("#uni-p1").classList.add("shielding");
+        if (a2 === "shield") $("#uni-p2").classList.add("shielding");
+        await wait(a1 === "jump" || a2 === "jump" ? 400 : 200);
+
+        // 3) Attacks
+        const d = dist();
+        let hit1 = false; // p1 hits p2
+        let hit2 = false;
+
+        if (a1 === "attack") {
+          $("#uni-p1").classList.add("attacking");
+          spawnSparkles($("#uni-p1"));
+          if (d <= 1 && a2 !== "shield" && a2 !== "jump") hit1 = true;
+        }
+        if (a2 === "attack") {
+          $("#uni-p2").classList.add("attacking");
+          spawnSparkles($("#uni-p2"));
+          if (d <= 1 && a1 !== "shield" && a1 !== "jump") hit2 = true;
+        }
+
+        await wait(350);
+
+        if (hit1) {
+          state.hp.p2 = Math.max(0, state.hp.p2 - 1);
+          $("#uni-p2").classList.add("hurt");
+          flashHeart("p2");
+        }
+        if (hit2) {
+          state.hp.p1 = Math.max(0, state.hp.p1 - 1);
+          $("#uni-p1").classList.add("hurt");
+          flashHeart("p1");
+        }
+        renderHearts();
+
+        // Banner result
+        if (hit1 && hit2) showBanner("Double sparkle! Both got hit!");
+        else if (hit1) showBanner(`${state.names.p1} lands a sparkle!`);
+        else if (hit2) showBanner(`${state.names.p2} lands a sparkle!`);
+        else if (a1 === "attack" || a2 === "attack") showBanner("Blocked or too far — safe!");
+        else showBanner("Cloud dance!");
+
+        await wait(900);
+
+        if (state.hp.p1 <= 0 || state.hp.p2 <= 0) {
+          endMatch();
+          return;
+        }
+
+        state.round += 1;
+        $("#round-num").textContent = state.round;
+        resetPickUI();
+        showBanner("Round " + state.round + " — pick!");
+        startTimer();
+      }
+
+      function labelOf(id) {
+        return ACTIONS.find((a) => a.id === id)?.label || id;
+      }
+
+      function applyMove(who, action) {
+        if (action === "left") state.pos[who] = Math.max(0, state.pos[who] - 1);
+        if (action === "right") state.pos[who] = Math.min(PAD_COUNT - 1, state.pos[who] + 1);
+      }
+
+      function flashHeart(who) {
+        const hearts = $$(`#hearts-${who} .heart:not(.empty)`);
+        const last = hearts[hearts.length - 1];
+        if (last) last.classList.add("hit");
+      }
+
+      function spawnSparkles(el) {
+        const rect = el.getBoundingClientRect();
+        for (let i = 0; i < 8; i++) {
+          const s = document.createElement("div");
+          s.className = "sparkle-burst";
+          s.textContent = ["✨", "⭐", "💫"][i % 3];
+          s.style.left = rect.left + rect.width / 2 + "px";
+          s.style.top = rect.top + rect.height / 3 + "px";
+          s.style.setProperty("--dx", (Math.random() - 0.5) * 100 + "px");
+          s.style.setProperty("--dy", (Math.random() - 0.8) * 80 + "px");
+          s.style.position = "fixed";
+          document.body.appendChild(s);
+          setTimeout(() => s.remove(), 700);
+        }
+      }
+
+      function wait(ms) {
+        return new Promise((r) => setTimeout(r, ms));
+      }
+
+      function endMatch() {
+        clearInterval(state.timer);
+        state.phase = "ended";
+        if (state.hp.p1 <= 0 && state.hp.p2 <= 0) {
+          state.winner = null;
+          $("#win-title").textContent = "It's a tie! 🤝";
+          $("#win-sub").textContent = "You both spun magic — share the wheel spin!";
+        } else if (state.hp.p2 <= 0) {
+          state.winner = "p1";
+          $("#win-title").textContent = `${state.names.p1} wins! 🎉`;
+          $("#win-sub").textContent = "Spin the wheel for diamond prizes!";
+        } else {
+          state.winner = "p2";
+          $("#win-title").textContent = `${state.names.p2} wins! 🎉`;
+          $("#win-sub").textContent = "Spin the wheel for diamond prizes!";
+        }
+
+        state.spun = false;
+        state.spinning = false;
+        $("#btn-spin").disabled = false;
+        $("#btn-spin").classList.remove("hidden");
+        $("#btn-again").classList.add("hidden");
+        $("#btn-home").classList.add("hidden");
+        $("#prize-msg").textContent = "Tap Spin!";
+        $("#wheel").style.transition = "none";
+        $("#wheel").style.transform = "rotate(0deg)";
+        requestAnimationFrame(() => {
+          $("#wheel").style.transition = "transform 4s cubic-bezier(0.15, 0.85, 0.2, 1)";
+        });
+
+        burstConfetti();
+        showScreen("win");
+      }
+
+      function spinWheel() {
+        if (state.spinning || state.spun) return;
+        state.spinning = true;
+        $("#btn-spin").disabled = true;
+        $("#prize-msg").textContent = "Spinning…";
+
+        const n = WHEEL_PRIZES.length;
+        const index = Math.floor(Math.random() * n);
+        const seg = 360 / n;
+        // Pointer at top; conic starts at -90deg so segment 0 center is at top initially
+        // After rotation R, segment index's center should be at top (0 / -90 in our paint)
+        const centerAngle = index * seg + seg / 2;
+        const spins = 5 + Math.floor(Math.random() * 3);
+        // We want centerAngle to land under pointer at top → rotate so that angle goes to 0 from top
+        const finalRotate = spins * 360 + (360 - centerAngle);
+
+        const wheel = $("#wheel");
+        wheel.style.transform = `rotate(${finalRotate}deg)`;
+
+        setTimeout(() => {
+          const prize = WHEEL_PRIZES[index];
+          const who = state.winner || (Math.random() < 0.5 ? "p1" : "p2");
+          // On tie, both get half rounded up / or both get prize
+          if (!state.winner) {
+            state.diamonds.p1 += prize.value;
+            state.diamonds.p2 += prize.value;
+            $("#prize-msg").textContent = `Both get ${prize.label}!`;
+          } else {
+            state.diamonds[who] += prize.value;
+            $("#prize-msg").textContent = `${state.names[who]} gets ${prize.label}!`;
+          }
+          $("#dia-p1").textContent = state.diamonds.p1;
+          $("#dia-p2").textContent = state.diamonds.p2;
+          state.spinning = false;
+          state.spun = true;
+          $("#btn-spin").classList.add("hidden");
+          $("#btn-again").classList.remove("hidden");
+          $("#btn-home").classList.remove("hidden");
+          burstConfetti();
+          showBanner("💎 " + prize.label);
+        }, 4200);
+      }
+
+      function burstConfetti() {
+        const box = $("#confetti");
+        const colors = ["#ff8fab", "#6ec6ff", "#7ddfc0", "#ffe66d", "#ffb4a2", "#fff"];
+        for (let i = 0; i < 40; i++) {
+          const d = document.createElement("i");
+          d.style.left = Math.random() * 100 + "%";
+          d.style.background = colors[i % colors.length];
+          d.style.animationDuration = 1.5 + Math.random() * 2 + "s";
+          d.style.animationDelay = Math.random() * 0.4 + "s";
+          box.appendChild(d);
+          setTimeout(() => d.remove(), 4000);
+        }
+      }
+
+      /* Keyboard */
+      function onKey(e) {
+        if (state.screen !== "game" || state.phase !== "pick") return;
+        const k = e.key;
+        for (const a of ACTIONS) {
+          if (a.keys.p1.includes(k)) {
+            e.preventDefault();
+            pickAction("p1", a.id);
+            return;
+          }
+          if (a.keys.p2.includes(k)) {
+            e.preventDefault();
+            pickAction("p2", a.id);
+            return;
+          }
+        }
+      }
+
+      /* Init */
+      function init() {
+        buildSky();
+        buildSwatches();
+        buildPads();
+        buildActions();
+        buildWheel();
+        paintUnicorns();
+        placeUnicorns();
+
+        $("#btn-start").addEventListener("click", startMatch);
+        $("#btn-spin").addEventListener("click", spinWheel);
+        $("#btn-again").addEventListener("click", () => {
+          startMatch();
+        });
+        $("#btn-home").addEventListener("click", () => {
+          clearInterval(state.timer);
+          showScreen("start");
+        });
+        window.addEventListener("keydown", onKey);
+        window.addEventListener("resize", () => {
+          if (state.screen === "game") placeUnicorns();
+        });
+
+        // Keep unicorns positioned after fonts/layout
+        setTimeout(placeUnicorns, 100);
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
